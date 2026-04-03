@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Bow Game Mobile</title>
+<style>
+  body {
+    margin: 0;
+    background: black;
+    overflow: hidden;
+    touch-action: none;
+    color: white;
+    font-family: Arial;
+  }
+
+  #score {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 20px;
+  }
+</style>
+</head>
+<body>
+
+<div id="score">Score: 0</div>
+<canvas id="game"></canvas>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+canvas.width = innerWidth;
+canvas.height = innerHeight;
+
+let mouse = { x: canvas.width / 2, y: canvas.height / 2 };
+let arrows = [];
+let score = 0;
+
+const target = {
+  x: canvas.width - 100,
+  y: canvas.height / 2,
+  r: 40
+};
+
+// 👇 HANDLE BOTH TOUCH + MOUSE
+function setPosition(x, y) {
+  mouse.x = x;
+  mouse.y = y;
+}
+
+// Mouse
+window.addEventListener("mousemove", (e) => {
+  setPosition(e.clientX, e.clientY);
+});
+
+window.addEventListener("click", shoot);
+
+// Touch
+window.addEventListener("touchmove", (e) => {
+  const touch = e.touches[0];
+  setPosition(touch.clientX, touch.clientY);
+});
+
+window.addEventListener("touchstart", (e) => {
+  const touch = e.touches[0];
+  setPosition(touch.clientX, touch.clientY);
+  shoot();
+});
+
+// SHOOT FUNCTION
+function shoot() {
+  arrows.push({
+    x: 80,
+    y: canvas.height / 2,
+    dx: (mouse.x - 80) / 15,
+    dy: (mouse.y - canvas.height / 2) / 15
+  });
+}
+
+function drawBow() {
+  ctx.strokeStyle = "white";
+  ctx.beginPath();
+  ctx.moveTo(80, canvas.height / 2);
+  ctx.lineTo(mouse.x, mouse.y);
+  ctx.stroke();
+}
+
+function drawTarget() {
+  ctx.beginPath();
+  ctx.arc(target.x, target.y, target.r, 0, Math.PI * 2);
+  ctx.fillStyle = "red";
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(target.x, target.y, target.r / 2, 0, Math.PI * 2);
+  ctx.fillStyle = "white";
+  ctx.fill();
+}
+
+function drawArrows() {
+  arrows.forEach((arrow, i) => {
+    arrow.x += arrow.dx;
+    arrow.y += arrow.dy;
+
+    ctx.fillStyle = "yellow";
+    ctx.fillRect(arrow.x, arrow.y, 12, 3);
+
+    let dx = arrow.x - target.x;
+    let dy = arrow.y - target.y;
+    let distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance < target.r) {
+      score++;
+      document.getElementById("score").innerText = "Score: " + score;
+      arrows.splice(i, 1);
+    }
+  });
+}
+
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  drawBow();
+  drawTarget();
+  drawArrows();
+
+  requestAnimationFrame(animate);
+}
+
+animate();
+</script>
+
+</body>
+</html>
